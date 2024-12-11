@@ -1,19 +1,33 @@
 import sys
 
 class ConversorTemperatura:
-    """Classe para converter temperaturas entre Celsius e Fahrenheit."""
+    """Classe para converter temperaturas entre Celsius, Fahrenheit e Kelvin."""
 
-    def celsius_para_fahrenheit(self, celsius):
-        """Converte uma temperatura de Celsius para Fahrenheit."""
-        if celsius < -273.15:
-            raise ValueError("Temperatura em Celsius abaixo do zero absoluto.")
-        return (celsius * 9/5) + 32
+    def __init__(self):
+        self.conversao = {
+            "C": {
+                "F": lambda c: (c * 9/5) + 32,
+                "K": lambda c: c + 273.15
+            },
+            "F": {
+                "C": lambda f: (f - 32) * 5/9,
+                "K": lambda f: (f + 459.67) * 5/9
+            },
+            "K": {
+                "C": lambda k: k - 273.15,
+                "F": lambda k: (k * 9/5) - 459.67
+            }
+        }
 
-    def fahrenheit_para_celsius(self, fahrenheit):
-        """Converte uma temperatura de Fahrenheit para Celsius."""
-        if fahrenheit < -459.67:
-            raise ValueError("Temperatura em Fahrenheit abaixo do zero absoluto.")
-        return (fahrenheit - 32) * 5/9
+    def converter(self, temperatura, unidade_inicial, unidade_final):
+        """Converte uma temperatura de uma unidade para outra."""
+        if unidade_inicial not in self.conversao or unidade_final not in self.conversao:
+            raise ValueError("Unidades inválidas.")
+        if temperatura < 0 and unidade_inicial.lower() == "celsius":
+            raise ValueError("Temperatura em Celsius não pode ser negativa.")
+        if temperatura < -273.15 and unidade_inicial.lower() == "kelvin":
+            raise ValueError("Temperatura em Kelvin não pode ser negativa.")
+        return self.conversao[unidade_inicial][unidade_final](temperatura)
 
 def obter_temperatura(unidade):
     """Obtém a temperatura do usuário em uma determinada unidade."""
@@ -22,6 +36,8 @@ def obter_temperatura(unidade):
             temperatura = float(input(f"Digite a temperatura em {unidade}: "))
             if temperatura < 0 and unidade.lower() == "celsius":
                 print("A temperatura em Celsius não pode ser negativa.")
+            elif temperatura < -273.15 and unidade.lower() == "kelvin":
+                print("A temperatura em Kelvin não pode ser negativa.")
             else:
                 return temperatura
         except ValueError:
@@ -31,21 +47,21 @@ def exibir_resultado(temperatura, unidade_inicial, unidade_final):
     """Exibe a temperatura convertida."""
     print(f"A temperatura em {unidade_inicial} convertida para {unidade_final} é: {temperatura:.2f}°{unidade_final}")
 
-# Obter a temperatura inicial e a unidade
-unidade_inicial = input("Digite a unidade inicial (C para Celsius, F para Fahrenheit): ").upper()
-if unidade_inicial not in ['C', 'F']:
-    print("Unidade inválida. Digite C ou F.")
-    sys.exit(1)
+# Obter as unidades inicial e final
+while True:
+    unidade_inicial = input("Digite a unidade inicial (C para Celsius, F para Fahrenheit, K para Kelvin): ").upper()
+    unidade_final = input("Digite a unidade final (C para Celsius, F para Fahrenheit, K para Kelvin): ").upper()
+    if unidade_inicial in ['C', 'F', 'K'] and unidade_final in ['C', 'F', 'K'] and unidade_inicial != unidade_final:
+        break
+    else:
+        print("Unidades inválidas. Digite C, F ou K.")
 
+# Obter a temperatura
 temperatura = obter_temperatura(unidade_inicial)
 
 # Criar uma instância do conversor
 conversor = ConversorTemperatura()
 
 # Realizar a conversão e exibir o resultado
-if unidade_inicial == 'C':
-    fahrenheit = conversor.celsius_para_fahrenheit(temperatura)
-    exibir_resultado(fahrenheit, "Celsius", "Fahrenheit")
-else:
-    celsius = conversor.fahrenheit_para_celsius(temperatura)
-    exibir_resultado(celsius, "Fahrenheit", "Celsius")
+resultado = conversor.converter(temperatura, unidade_inicial, unidade_final)
+exibir_resultado(resultado, unidade_inicial, unidade_final)
